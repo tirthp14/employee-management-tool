@@ -1,4 +1,3 @@
-#Tirth Tusharkumar Patel, Noel, Joel
 #This program helps a company manage their employee details
 
 print("Welcome to TeamTracker")
