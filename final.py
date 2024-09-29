@@ -1,6 +1,9 @@
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import messagebox, ttk, filedialog
 import json
+import csv
+from statistics import mean
+from PIL import Image, ImageTk
 
 # Data storage for employees
 Emp_Data = {}
@@ -18,6 +21,26 @@ def load_data():
 def save_data():
     with open("employee_data.json", "w") as f:
         json.dump(Emp_Data, f)
+
+# Export data to CSV
+def export_to_csv():
+    with open("employee_data.csv", "w", newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(["ID", "Name", "Designation", "Department", "Salary"])
+        for emp_id, details in Emp_Data.items():
+            writer.writerow([emp_id, details['Employee Name'], details['Employee Designation'],
+                             details['Employee Department'], details['Employee Salary']])
+    messagebox.showinfo("Success", "Data exported to employee_data.csv")
+
+# Add employee photo upload functionality
+def upload_photo():
+    file_path = filedialog.askopenfilename(filetypes=[("Image Files", "*.png;*.jpg;*.jpeg")])
+    if file_path:
+        photo = Image.open(file_path)
+        photo.thumbnail((80, 80))
+        photo = ImageTk.PhotoImage(photo)
+        photo_label.config(image=photo)
+        photo_label.image = photo
 
 # Function to add employee data
 def add_employee():
@@ -113,10 +136,17 @@ def clear_entries():
     entry_department.delete(0, tk.END)
     entry_salary.delete(0, tk.END)
 
+# Employee Analytics
+def show_analytics():
+    total_employees = len(Emp_Data)
+    total_salary = sum(details['Employee Salary'] for details in Emp_Data.values())
+    avg_salary = mean([details['Employee Salary'] for details in Emp_Data.values()]) if Emp_Data else 0
+    messagebox.showinfo("Analytics", f"Total Employees: {total_employees}\nTotal Salary: ${total_salary:.2f}\nAverage Salary: ${avg_salary:.2f}")
+
 # Tkinter Window setup
 root = tk.Tk()
 root.title("TeamTracker - Employee Management")
-root.geometry("800x500")
+root.geometry("900x600")
 root.config(bg='#f0f0f0')
 
 # Labels and Entry Widgets for Input
@@ -178,7 +208,21 @@ sort_name.grid(row=7, column=1)
 sort_salary = tk.Button(root, text="Salary", command=lambda: sort_employees_by("Employee Salary"))
 sort_salary.grid(row=7, column=2)
 
-# Load data on startup
+# Analytics Button
+btn_analytics = tk.Button(root, text="Show Analytics", command=show_analytics)
+btn_analytics.grid(row=7, column=3)
+
+# Export to CSV Button
+btn_export = tk.Button(root, text="Export to CSV", command=export_to_csv)
+btn_export.grid(row=7, column=4)
+
+# Photo upload feature
+photo_label = tk.Label(root, text="Upload Employee Photo", bg='#f0f0f0')
+photo_label.grid(row=8, column=0)
+btn_upload_photo = tk.Button(root, text="Upload Photo", command=upload_photo)
+btn_upload_photo.grid(row=8, column=1)
+
+# Load data from file on startup
 load_data()
 display_employees()
 
