@@ -1,175 +1,108 @@
-#This program helps a company manage their employee details
+import tkinter as tk
+from tkinter import messagebox
+import json
 
-print("Welcome to TeamTracker")
-
+# Data storage for employees
 Emp_Data = {}
 
-def INPUTDETAILS():
-    N = int(input("\nEnter the number of employee's: "))
-    for i in range(N):
-        print("\n---------------------------------------- \n")
-        print("Enter employee details here", "\n")
-        while True:
-            Empid = int(input("Enter employee's ID: "))
-            if Empid <= 0:
-                print("Invalid input. Enter a positive number!")
-                print("---------------------------------------- \n")
-            else:
-                break
-        Empname = input("Enter employee's Full Name: ")
-        Emp_Designation = input("Enter employee's designated position: ")
-        Emp_Department = input("Enter employee's Department: ")
-        while True:
-            Emp_Salary = float(input("Enter employees's Salary: "))
-            if Emp_Salary < 0:
-                print("Invalid input. Enter a positive number!")
-            else:
-                break
-        Emp_Data[i] = {"Employee ID" : Empid, "Employee Name" : Empname, "Employee Designation" : Emp_Designation, "Employee Department" : Emp_Department, "Employee Salary" : Emp_Salary}
+# Load data from JSON file
+def load_data():
+    global Emp_Data
+    try:
+        with open("employee_data.json", "r") as f:
+            Emp_Data = json.load(f)
+    except FileNotFoundError:
+        Emp_Data = {}
 
-def EMPDETAILS():
-    size = len(Emp_Data)
-    print("\n----------------------------------------\n")
-    print("List of all employees:")
-    for i in range(size):
-        print("\nEmployee", (i + 1),": \n")
-        for key, value in Emp_Data[i].items():
-            print(f"{key} : {value}")
+# Save data to JSON file
+def save_data():
+    with open("employee_data.json", "w") as f:
+        json.dump(Emp_Data, f)
 
-def EMPDETAILS_DEP():
-    size = len(Emp_Data)
-    print("\n----------------------------------------")
-    Given_Dep = input("\nEnter specific department that you want to look up: ")
-    found = False
-    print("\nList of Employees in", Given_Dep, "department are:")
-    for i in range(size):
-        if Given_Dep == Emp_Data[i]["Employee Department"]:
-            found = True
-            print("\nEmployee", (i + 1), ": \n")
-            for key, value in Emp_Data[i].items():
-                print(f"{key} : {value}")
-    if not found:
-        print("\nOpps..there are no Employee's in this department")
+# Function to add employee data
+def add_employee():
+    try:
+        emp_id = int(entry_id.get())
+        if emp_id in Emp_Data:
+            messagebox.showerror("Error", "Employee ID already exists!")
+            return
+        emp_name = entry_name.get()
+        emp_designation = entry_designation.get()
+        emp_department = entry_department.get()
+        emp_salary = float(entry_salary.get())
 
-def EMPID_SORT():
-    while True:
-        print("\n----------------------------------------")
-        order = input("\nType A to sort in Ascending Order \nOR \nType D to sort in Descending Order\n \nWhat do you choose?: ")
-        if order == "A":
-            size = len(Emp_Data)
-            for a in range(0, (size - 1)):
-                min_value = a
-                for b in range((a + 1), size):
-                    if Emp_Data[b]["Employee ID"] < Emp_Data[min_value]["Employee ID"]:
-                        min_value = b
-                Emp_Data[a], Emp_Data[min_value] = Emp_Data[min_value], Emp_Data[a]
-            print("\n----------------------------------------")
-            print("\nEmployee Data in Ascending Order of Employee ID:")
-            sorted_data = Emp_Data
-            for i in range(len(sorted_data)):
-                print("\nEmployee", (i + 1), ": \n")
-                for key, value in sorted_data[i].items():
-                    print(f"{key} : {value}")
-            break
-        elif order == "D":
-            size = len(Emp_Data)
-            for a in range(0, (size - 1)):
-                min_value = a
-                for b in range((a + 1), size):
-                    if Emp_Data[b]["Employee ID"] > Emp_Data[min_value]["Employee ID"]:
-                        min_value = b
-                Emp_Data[a], Emp_Data[min_value] = Emp_Data[min_value], Emp_Data[a]
-            print("\n----------------------------------------")
-            print("Employee Data in Descending Order of Employee ID:")
-            sorted_data = Emp_Data
-            for i in range(len(sorted_data)):
-                print("\nEmployee", (i + 1), ": \n")
-                for key, value in sorted_data[i].items():
-                    print(f"{key} : {value}")
-            break
-        else:
-            print("\nInvalid sorting choice! Please try again..")
+        Emp_Data[emp_id] = {
+            "Employee Name": emp_name,
+            "Employee Designation": emp_designation,
+            "Employee Department": emp_department,
+            "Employee Salary": emp_salary
+        }
+        save_data()
+        messagebox.showinfo("Success", "Employee added successfully!")
+        clear_entries()
+    except ValueError:
+        messagebox.showerror("Error", "Invalid input! Please enter the correct data.")
 
-def EMP_EDIT():
-    while True:
-        print("\n----------------------------------------\n")
-        add = input("Type Add to Insert new Employee details \nOR\nType Delete to Remove an Employee's Details\n \nWhat do you chose to do: ")
-        if add == "Add":
-            New_Data = {}
-            print("\n----------------------------------------\n")
-            print("Enter employee details here", "\n")
-            Empid = int(input("Enter employee's ID: "))
-            if Empid <= 0:
-                print("Invalid input. Enter a positive number! Try Again")
-            else:
-                if Empid in [emp["Employee ID"] for emp in Emp_Data.values()]:
-                    print("\nEmployee ID already exists!")
-                else:
-                    Empname = input("Enter employee's Full Name: ")
-                    Emp_Designation = input("Enter employee's designated position: ")
-                    Emp_Department = input("Enter employee's Department: ")
-                    Emp_Salary = eval(input("Enter employees's Salary: "))
+# Function to display employee details
+def display_employees():
+    emp_list.delete(0, tk.END)  # Clear the listbox first
+    if not Emp_Data:
+        emp_list.insert(tk.END, "No employee details found.")
+    else:
+        for emp_id, details in Emp_Data.items():
+            emp_list.insert(tk.END, f"ID: {emp_id}, Name: {details['Employee Name']}")
 
-                    New_Data["Employee ID"] = Empid
-                    New_Data["Employee Name"] = Empname
-                    New_Data["Employee Designation"] = Emp_Designation
-                    New_Data["Employee Department"] = Emp_Department
-                    New_Data["Employee Salary"] = Emp_Salary
-                    print("\n----------------------------------------")
+# Function to clear input fields
+def clear_entries():
+    entry_id.delete(0, tk.END)
+    entry_name.delete(0, tk.END)
+    entry_designation.delete(0, tk.END)
+    entry_department.delete(0, tk.END)
+    entry_salary.delete(0, tk.END)
 
-                    Emp_Data[len(Emp_Data)] = New_Data
-                    print("\nEmployee details added successfully!\n")
-                    print("Updated employee details:")
-                    Emp_Details(Emp_Data)
-                    break
-        elif add == "Delete":
-            empid = int(input("\nEnter ID of employee to be deleted: "))
-            found = False
-            for key, value in Emp_Data.copy().items():
-                if value["Employee ID"] == empid:
-                    found = True
-                    del Emp_Data[key]
-                    print("\nEmployee details deleted successfully!")
-                    Emp_Details(Emp_Data)
-            break
-            if not found:
-                print("\nEmployee not found in records. Please try again!")
-        else:
-            print("\nInvalid input. Please try again!")
-            
-def Emp_Details(Data):
-    for key in Data:
-        print("\nEmployee", (key + 1), ": \n")
-        for sub_key, value in Data[key].items():
-            print(f"{sub_key} : {value}")
+# Tkinter Window setup
+root = tk.Tk()
+root.title("TeamTracker - Employee Management")
+root.geometry("500x400")
 
-def EMP_MENU():
-    while True:
-        print("\n----------------------------------------")
-        print("\nMenu Options:\n")
-        print("1. Accept Employee Details")
-        print("2. Display Employee Details")
-        print("3. Department of Employee")
-        print("4. Sort Employee Details by Employee ID")
-        print("5. Add/Delete Employee Details")
-        print("6. Quit")
+# Labels and Entry Widgets for Input
+label_id = tk.Label(root, text="Employee ID")
+label_id.grid(row=0, column=0)
+entry_id = tk.Entry(root)
+entry_id.grid(row=0, column=1)
 
-        menu = int(input("\nEnter your choice: "))
-        if menu == 1:
-            INPUTDETAILS()
-        elif menu == 2:
-            EMPDETAILS()
-        elif menu == 3:
-            EMPDETAILS_DEP()
-        elif menu == 4:
-            EMPID_SORT()
-        elif menu == 5:
-            EMP_EDIT()
-        elif menu == 6:
-            print("Exciting program...")
-            print("Thank You for using TeamTracker")
-            break
-        else:
-            print("Invalid choice entered!")
+label_name = tk.Label(root, text="Employee Name")
+label_name.grid(row=1, column=0)
+entry_name = tk.Entry(root)
+entry_name.grid(row=1, column=1)
 
-EMP_MENU()
+label_designation = tk.Label(root, text="Designation")
+label_designation.grid(row=2, column=0)
+entry_designation = tk.Entry(root)
+entry_designation.grid(row=2, column=1)
+
+label_department = tk.Label(root, text="Department")
+label_department.grid(row=3, column=0)
+entry_department = tk.Entry(root)
+entry_department.grid(row=3, column=1)
+
+label_salary = tk.Label(root, text="Salary")
+label_salary.grid(row=4, column=0)
+entry_salary = tk.Entry(root)
+entry_salary.grid(row=4, column=1)
+
+# Buttons to Add and Display Employees
+btn_add = tk.Button(root, text="Add Employee", command=add_employee)
+btn_add.grid(row=5, column=0)
+
+btn_display = tk.Button(root, text="Display Employees", command=display_employees)
+btn_display.grid(row=5, column=1)
+
+# Listbox to display employees
+emp_list = tk.Listbox(root, width=50)
+emp_list.grid(row=6, column=0, columnspan=2)
+
+# Load data on startup
+load_data()
+
+root.mainloop()
